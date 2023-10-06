@@ -1,0 +1,10 @@
+.github
+.editorconfig
+.env
+.env.dist
+.gitignore
+docker-compose.build.yaml
+docker-compose.yaml
+Dockerfile
+Makefile
+README.md

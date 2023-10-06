@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "sass": "bun ./node_modules/.bin/sass",
+    "sass:compile": "bun sass ./style:."
+  },
+  "dependencies": {
+    "sass": "^1.68.0",
+    "vertical-rhythm-reset": "^2.0.0"
+  }
+}

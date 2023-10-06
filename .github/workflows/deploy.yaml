@@ -1,0 +1,80 @@
+name: Deploy
+
+on:
+    workflow_run:
+        workflows: ['Publish']
+        types: ['completed']
+
+env:
+    WORKING_DIRECTORY: ~/workspace/com.assets
+    BW_SECRETS: |
+        670f59a0-3ec7-4809-bdfe-b09300d5dc12 > DEPLOY_HOST
+        91aa0b8f-468b-4eee-943d-b09300d5aaff > DEPLOY_PROXY_HOST
+        b4ffca0a-3638-49d6-a982-b09300d5eed0 > DEPLOY_USERNAME
+        97fb6768-d1fb-42bb-a8c4-b09300d6115a > DEPLOY_RSA_KEY
+
+jobs:
+    checkout:
+        runs-on: ubuntu-22.04
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Get Secrets
+              uses: bitwarden/sm-action@v1
+              with:
+                  access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+                  secrets: ${{ env.BW_SECRETS }}
+            - name: Copy application files
+              uses: appleboy/scp-action@v0.1.4
+              with:
+                  host: ${{ env.DEPLOY_HOST }}
+                  username: ${{ env.DEPLOY_USERNAME }}
+                  key: ${{ env.DEPLOY_RSA_KEY }}
+                  proxy_host: ${{ env.DEPLOY_PROXY_HOST }}
+                  proxy_username: ${{ env.DEPLOY_USERNAME }}
+                  proxy_key: ${{ env.DEPLOY_RSA_KEY }}
+                  source: .env.dist,docker-compose.yaml,Makefile
+                  target: ${{ env.WORKING_DIRECTORY }}
+    start:
+        needs: checkout
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Get Secrets
+              uses: bitwarden/sm-action@v1
+              with:
+                  access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+                  secrets: ${{ env.BW_SECRETS }}
+            - name: Start application
+              uses: appleboy/ssh-action@v1.0.0
+              with:
+                  host: ${{ env.DEPLOY_HOST }}
+                  username: ${{ env.DEPLOY_USERNAME }}
+                  key: ${{ env.DEPLOY_RSA_KEY }}
+                  proxy_host: ${{ env.DEPLOY_PROXY_HOST }}
+                  proxy_username: ${{ env.DEPLOY_USERNAME }}
+                  proxy_key: ${{ env.DEPLOY_RSA_KEY }}
+                  script: |
+                      cd ${{ env.WORKING_DIRECTORY }}
+                      make dotenv-dump src=.env.dist dest=.env
+                      make start
+    cleanup:
+        needs: start
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Get Secrets
+              uses: bitwarden/sm-action@v1
+              with:
+                  access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+                  secrets: ${{ env.BW_SECRETS }}
+            - name: Remove working directory
+              uses: appleboy/ssh-action@v1.0.0
+              with:
+                  host: ${{ env.DEPLOY_HOST }}
+                  username: ${{ env.DEPLOY_USERNAME }}
+                  key: ${{ env.DEPLOY_RSA_KEY }}
+                  proxy_host: ${{ env.DEPLOY_PROXY_HOST }}
+                  proxy_username: ${{ env.DEPLOY_USERNAME }}
+                  proxy_key: ${{ env.DEPLOY_RSA_KEY }}
+                  script: |
+                      rm -rf ${{ env.WORKING_DIRECTORY }}

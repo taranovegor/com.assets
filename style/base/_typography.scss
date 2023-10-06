@@ -1,0 +1,23 @@
+
+@import "../../node_modules/vertical-rhythm-reset/dist/vertical-rhythm-reset";
+
+@include reset(
+    $font-size: 16px,
+    $line-height: 1.65,
+    $modular-scale: major-second,
+    $breakpoints: (
+        768px: (
+            font-size: 18px,
+            modular-scale: minor-third,
+        ),
+    ),
+    $utilities: (),
+);
+
+html {
+    font-family: Times, serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: Arial, Helvetica, sans-serif;
+}

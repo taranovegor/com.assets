@@ -1,0 +1,21 @@
+
+body {
+    max-width: 600px;
+    //@include set($width: 32em);
+    @include set($margin: 1 auto);
+
+    //@include grid(
+    //    $color: rgb(233, 30, 99),
+    //    $lines: true,
+    //    $highlight: true,
+    //    $detail: true
+    //);
+
+    @media (max-width: 767px) {
+        @include set($padding: 0 .875)
+    }
+}
+
+img {
+    max-width: 100%;
+}

@@ -1,0 +1,43 @@
+name: Publish
+
+on:
+    push:
+        branches: ['tec-2']
+
+env:
+    GO111MODULE: on
+    BW_SECRETS: |
+        5d3289c8-e142-4587-8902-b09300e0a2fc > DOCKER_REGISTRY_USERNAME
+        15f2c9ab-6f87-48ba-ba8d-b09300e0c145 > DOCKER_REGISTRY_PASSWORD
+
+jobs:
+    push:
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+              with:
+                  platforms: linux/amd64,linux/arm64
+            - name: Get Secrets
+              uses: bitwarden/sm-action@v1
+              with:
+                  access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+                  secrets: ${{ env.BW_SECRETS }}
+            - run: echo $DOCKER_REGISTRY_USERNAME
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  registry: dokregisto.taranovegor.com
+                  username: ${{ env.DOCKER_REGISTRY_USERNAME }}
+                  password: ${{ env.DOCKER_REGISTRY_PASSWORD }}
+            - name: Build & Push to Docker Hub
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  push: true
+                  tags: dokregisto.taranovegor.com/com/assets_server:latest
+                  platforms: linux/amd64,linux/arm64

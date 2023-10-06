@@ -1,0 +1,7 @@
+version: '3.7'
+services:
+    server:
+        image: dokregisto.taranovegor.com/com/assets_server:latest
+        container_name: com_assets_server
+        ports:
+            - $SERVER_EXPOSE_PORT:80
